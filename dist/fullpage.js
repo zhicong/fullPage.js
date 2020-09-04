@@ -164,6 +164,7 @@
             responsiveWidth: 0,
             responsiveHeight: 0,
             responsiveSlides: false,
+            shouldResizeOnTouchKeyboard: false,
             parallax: false,
             parallaxOptions: {
                 type: 'reveal',
@@ -2693,8 +2694,17 @@
             if (isTouchDevice) {
                 var activeElement = document.activeElement;
 
-                //if the keyboard is NOT visible
-                if (!matches(activeElement, 'textarea') && !matches(activeElement, 'input') && !matches(activeElement, 'select')) {
+                var isKeyboardVisible = matches(activeElement, 'textarea') || matches(activeElement, 'input') || matches(activeElement, 'select')
+                var shouldResize = !isKeyboardVisible
+                // allow option to override default behavior of always rebuilding on non-keyboard screen resizes
+                if (options.shouldResizeOnTouchKeyboard) {
+                    if (typeof options.shouldResizeOnTouchKeyboard === 'function') {
+                        shouldResize = options.shouldResizeOnTouchKeyboard(isKeyboardVisible ? 'visible' : 'hidden')
+                    } else {
+                        shouldResize = options.shouldResizeOnTouchKeyboard
+                    }
+                }
+                if (shouldResize) {
                     var currentHeight = getWindowHeight();
 
                     //making sure the change in the viewport size is enough to force a rebuild. (20 % of the window to avoid problems when hidding scroll bars)
