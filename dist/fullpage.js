@@ -191,6 +191,7 @@
             afterSlideLoad: null,
             onSlideLeave: null,
             afterResponsive: null,
+            onMobileResize: null,
 
             lazyLoading: true
         }, options);
@@ -2695,14 +2696,24 @@
 
             // rebuild immediately on touch devices
             if (isTouchDevice) {
-                var activeElement = document.activeElement;
+                var currentHeight = getWindowHeight();
 
-                //if the keyboard is NOT visible
-                if (!matches(activeElement, 'textarea') && !matches(activeElement, 'input') && !matches(activeElement, 'select')) {
-                    var currentHeight = getWindowHeight();
+                // fix #799: making sure the change in the viewport size is enough to force a rebuild. (20 % of the window so we do not resize when address/nav bar height changes when scrolling)
+                if(options.autoScrolling || Math.abs(currentHeight - previousHeight) > (20 * Math.max(previousHeight, currentHeight) / 100) ){
+                    var activeElement = document.activeElement;
 
-                    //making sure the change in the viewport size is enough to force a rebuild. (20 % of the window to avoid problems when hidding scroll bars)
-                    if( Math.abs(currentHeight - previousHeight) > (20 * Math.max(previousHeight, currentHeight) / 100) ){
+                    var isKeyboardVisible = matches(activeElement, 'textarea') || matches(activeElement, 'input') || matches(activeElement, 'select');
+                    var shouldResize;
+                    // allow option to override default behavior of always rebuilding on non-keyboard screen resizes
+                    if (options.onMobileResize) {
+                        if (typeof options.onMobileResize === 'function') {
+                            shouldResize = options.onMobileResize(isKeyboardVisible);
+                        } else {
+                            shouldResize = options.onMobileResize;
+                        }
+                    }
+
+                    if (shouldResize !== undefined ? shouldResize : !isKeyboardVisible) {
                         reBuild(true);
                         previousHeight = currentHeight;
                     }
