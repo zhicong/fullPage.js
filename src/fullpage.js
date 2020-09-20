@@ -498,7 +498,7 @@
         function reBuild(resizing){
             if(hasClass(container, DESTROYED)){ return; }  //nothing to do if the plugin was destroyed
 
-            isResizing = true;
+            isResizing = resizing;
 
             //updating global vars
             windowsHeight = getWindowHeight();
@@ -542,6 +542,8 @@
             if(isFunction( options.afterReBuild ) && !resizing){
                 options.afterReBuild.call(container);
             }
+
+            isResizing = false;
         }
 
         /**
