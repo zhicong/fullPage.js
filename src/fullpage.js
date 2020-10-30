@@ -2695,7 +2695,7 @@
                 var currentHeight = getWindowHeight();
 
                 // fix #799: making sure the change in the viewport size is enough to force a rebuild. (20 % of the window so we do not resize when address/nav bar height changes when scrolling)
-                if( Math.abs(currentHeight - previousHeight) > (20 * Math.max(previousHeight, currentHeight) / 100) ){
+                if(!options.autoScrolling || Math.abs(currentHeight - previousHeight) > (20 * Math.max(previousHeight, currentHeight) / 100) ){
                     var activeElement = document.activeElement;
 
                     var isKeyboardVisible = matches(activeElement, 'textarea') || matches(activeElement, 'input') || matches(activeElement, 'select');
