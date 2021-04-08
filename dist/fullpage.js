@@ -839,6 +839,16 @@
             var newWindowWidth = getWindowWidth();
 
             if(windowsHeight !== newWindowHeight || windowsWidth !== newWindowWidth){
+                if (isTouchDevice) {
+                    var activeElement = document.activeElement;
+
+                    //if the keyboard is NOT visible
+                    var isKeyboardVisible = matches(activeElement, 'textarea') || matches(activeElement, 'input') || matches(activeElement, 'select');
+                    if (isKeyboardVisible) {
+                        return;
+                    }
+                }
+
                 windowsHeight = newWindowHeight;
                 windowsWidth = newWindowWidth;
                 reBuild(true);
@@ -2693,19 +2703,12 @@
             //checking if it needs to get responsive
             responsive();
 
-            // rebuild immediately on touch devices
             if (isTouchDevice) {
-                var activeElement = document.activeElement;
+                var currentHeight = getWindowHeight();
 
-                //if the keyboard is NOT visible
-                if (!matches(activeElement, 'textarea') && !matches(activeElement, 'input') && !matches(activeElement, 'select')) {
-                    var currentHeight = getWindowHeight();
-
-                    //making sure the change in the viewport size is enough to force a rebuild. (20 % of the window to avoid problems when hidding scroll bars)
-                    if( Math.abs(currentHeight - previousHeight) > (20 * Math.max(previousHeight, currentHeight) / 100) ){
-                        reBuild(true);
-                        previousHeight = currentHeight;
-                    }
+                //making sure the change in the viewport size is enough to force a rebuild. (20 % of the window to avoid problems when hidding scroll bars)
+                if (Math.abs(currentHeight - previousHeight) > (20 * Math.max(previousHeight, currentHeight) / 100)) {
+                    adjustToNewViewport();
                 }
             }
             else{
