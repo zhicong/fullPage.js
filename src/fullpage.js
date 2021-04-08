@@ -840,6 +840,29 @@
             var newWindowWidth = getWindowWidth();
 
             if(windowsHeight !== newWindowHeight || windowsWidth !== newWindowWidth){
+                if (isTouchDevice) {
+                    var currentHeight = getWindowHeight();
+
+                    // fix #799: making sure the change in the viewport size is enough to force a rebuild. (20 % of the window so we do not resize when address/nav bar height changes when scrolling)
+                    if(options.autoScrolling || Math.abs(currentHeight - previousHeight) > (20 * Math.max(previousHeight, currentHeight) / 100) ){
+                        var activeElement = document.activeElement;
+
+                        var isKeyboardVisible = matches(activeElement, 'textarea') || matches(activeElement, 'input') || matches(activeElement, 'select');
+                        var shouldResize;
+                        // don't resize due to touch keyboard appearance by default, unless overridden by onMobileResize
+                        if (options.onMobileResize) {
+                            if (typeof options.onMobileResize === 'function') {
+                                shouldResize = options.onMobileResize(isKeyboardVisible);
+                            } else {
+                                shouldResize = options.onMobileResize;
+                            }
+                        }
+                        if (shouldResize === undefined ? isKeyboardVisible : !shouldResize) {
+                            return;
+                        }
+                    }
+                }
+
                 windowsHeight = newWindowHeight;
                 windowsWidth = newWindowWidth;
                 reBuild(true);
@@ -2694,34 +2717,7 @@
             //checking if it needs to get responsive
             responsive();
 
-            // rebuild immediately on touch devices
-            if (isTouchDevice) {
-                var currentHeight = getWindowHeight();
-
-                // fix #799: making sure the change in the viewport size is enough to force a rebuild. (20 % of the window so we do not resize when address/nav bar height changes when scrolling)
-                if(options.autoScrolling || Math.abs(currentHeight - previousHeight) > (20 * Math.max(previousHeight, currentHeight) / 100) ){
-                    var activeElement = document.activeElement;
-
-                    var isKeyboardVisible = matches(activeElement, 'textarea') || matches(activeElement, 'input') || matches(activeElement, 'select');
-                    var shouldResize;
-                    // allow option to override default behavior of always rebuilding on non-keyboard screen resizes
-                    if (options.onMobileResize) {
-                        if (typeof options.onMobileResize === 'function') {
-                            shouldResize = options.onMobileResize(isKeyboardVisible);
-                        } else {
-                            shouldResize = options.onMobileResize;
-                        }
-                    }
-
-                    if (shouldResize !== undefined ? shouldResize : !isKeyboardVisible) {
-                        reBuild(true);
-                        previousHeight = currentHeight;
-                    }
-                }
-            }
-            else{
-                adjustToNewViewport();
-            }
+            adjustToNewViewport();
 
             isResizing = false;
         }
