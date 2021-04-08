@@ -842,16 +842,17 @@
                 if (isTouchDevice) {
                     var activeElement = document.activeElement;
 
-                    //if the keyboard is NOT visible
+                    //rebuild only if the keyboard is NOT visible
                     var isKeyboardVisible = matches(activeElement, 'textarea') || matches(activeElement, 'input') || matches(activeElement, 'select');
                     if (isKeyboardVisible) {
-                        return;
+                        return true;
                     }
                 }
 
                 windowsHeight = newWindowHeight;
                 windowsWidth = newWindowWidth;
                 reBuild(true);
+                return true;
             }
         }
 
@@ -2688,31 +2689,28 @@
                 //issue #3336 
                 //(some apps or browsers, like Chrome/Firefox for Mobile take time to report the real height)
                 //so we check it 3 times with intervals in that case
-                for(var i = 0; i< 4; i++){
-                    resizeHandlerId = setTimeout(resizeActions, 200 * i);
-                }
+                resizeActions(3)
             }, 200);
         }
 
         /**
         * When resizing the site, we adjust the heights of the sections, slimScroll...
         */
-        function resizeActions(){
+        function resizeActions(repetitions){
             isResizing = true;
 
             //checking if it needs to get responsive
             responsive();
 
-            if (isTouchDevice) {
-                var currentHeight = getWindowHeight();
-
-                //making sure the change in the viewport size is enough to force a rebuild. (20 % of the window to avoid problems when hidding scroll bars)
-                if (Math.abs(currentHeight - previousHeight) > (20 * Math.max(previousHeight, currentHeight) / 100)) {
-                    adjustToNewViewport();
+            var currentHeight = getWindowHeight();
+            //making sure the change in the viewport size is enough to force a rebuild. (20 % of the window to avoid problems when hidding scroll bars)
+            if (!isTouchDevice || Math.abs(currentHeight - previousHeight) > (20 * Math.max(previousHeight, currentHeight) / 100)) {
+                var adjusted = adjustToNewViewport();
+                if (!adjusted && repetitions > 0) {
+                    resizeHandlerId = setTimeout(function () {
+                        resizeActions(repetitions--)
+                    }, 200);
                 }
-            }
-            else{
-                adjustToNewViewport();
             }
 
             isResizing = false;
